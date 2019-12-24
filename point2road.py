@@ -34,11 +34,11 @@ def map2road(ptr, road_dict, find_line_num):
     min_keys = sorted(min_dict.keys())[:find_line_num]
     for key in min_keys:
         min_dist = 1
-        min_index = 0
         for i, min_line_ptr in enumerate(min_dict[key]):
             dist2road = dist(min_line_ptr, ptr)
             if min_dist > dist2road:
-                line_id[key] = (i, dist2road, min_line_ptr)
+                min_dist = dist2road
+                line_id[min_dict[key]] = (i, dist2road, min_line_ptr)
     return line_id
 
 
@@ -54,33 +54,51 @@ def find_nearst_ptr(line_to_dict):
             min_dist2road_info = dist2road_info
     if min_dist2road_info:
         raise RoadNotFoundException('Can not find the nearest road info \n{}'.format(line_to_dict))
-    return min_dist2road_info[0], min_dist2road_info[1], min_dist2road_info[2],min_dist_key
+    return min_dist2road_info[0], min_dist2road_info[1], min_dist2road_info[2], min_dist_key
+
+
+def find_ptr_in_threshold(line_id_dict, old_info, roads, threshold):
+    dist_list = []
+    for road in roads:
+        if road not in line_id_dict:
+            continue
+        dist_list.append(line_id_dict[road][1])
+    min_value = min(dist_list)
+    if min_value - old_info[1] > threshold:
+        return old_info[0],old_info[1],old_info[2],old_info[3]
+    else:
+        del line_id_dict[old_info[0]]
+        return find_nearst_ptr(line_id_dict)
 
 
 def main():
     road_dict = load_road_data()
     line_list = load_line_data()
     for line, goal_ptr in line_list:
-        history = [] #[{road_id:xxx,'posi':(x,y),index:x},....]
+        history = []  # [{road_id:xxx,'posi':(x,y),index:x},....]
         for ptr in line:
-            line_id_dict = map2road(ptr, road_dict,1)
+            line_id_dict = map2road(ptr, road_dict, 10)
             nearst_index, nearst_dist, ptr_in_map, nearst_road_key = find_nearst_ptr(line_id_dict)
             if history:
                 # 拿到最近的点 判断是否和前一个在同一个道路上，
                 # 如果在就再判断中间的间隔  如果不在就设置一个阈值差，如果属于这个阈值就仍然判断在一起，超过说明道路已经越过不应该再有牵连。
-                last_road_id = history[-1]['road_id']
-                ptr_info_dict = {'road_id': nearst_road_key, 'post': ptr_in_map, 'index': nearst_index}
+                ptr_info_dict = {'road_id': nearst_road_key, 'post': ptr_in_map, 'index': nearst_index, 'old_posi':ptr}
                 history.append(ptr_info_dict)
             else:
-                ptr_info_dict = {'road_id':nearst_road_key,'post':ptr_in_map,'index':nearst_index}
+                ptr_info_dict = {'road_id': nearst_road_key, 'post': ptr_in_map, 'index': nearst_index, 'old_posi':ptr}
                 history.append(ptr_info_dict)
-        for index,his_info in enumerate(history):
+        for index, his_info in enumerate(history):
             if index == 0:
                 continue
-            if his_info['road_id'] == history[index-1]['road_id'] or his_info['road_id'] == history[index+1]['road_id']:
+            if his_info['road_id'] == history[index - 1]['road_id'] or his_info['road_id'] == history[index + 1][
+                'road_id']:
                 continue
             else:
-                pass
-
-
-
+                line_id_dict = map2road(his_info['old_posi'], road_dict, 10)
+                nearst_index, nearst_dist, ptr_in_map, nearst_road_key\
+                    = find_ptr_in_threshold(line_id_dict,list(his_info.values()),
+                                            list(set([history[index - 1]['road_id'],history[index + 1]['road_id']])),
+                                            DIFF_ROAD_DIST)
+                his_info['road_id'] = nearst_road_key
+                his_info['post'] = ptr_in_map
+                his_info['index'] = nearst_index
