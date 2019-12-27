@@ -1,17 +1,19 @@
 import numpy as np
 import json
 import math
+from tqdm import tqdm
+import pysnooper
 
 FIND_LINE_NUM = 20
-DIFF_ROAD_DIST = 0.0001
-
+DIFF_ROAD_DIST = 0.0000001
+ADD_PTR = False
 
 class RoadNotFoundException(Exception):
     pass
 
 
 def load_road_data():
-    with open('road_dict', 'r') as f:
+    with open('roads_dict2.json', 'r') as f:
         data = json.load(f)
     return dict(zip(map(lambda x: eval(x), data.keys()), data.values()))
 
@@ -32,9 +34,9 @@ def map2road(ptr, road_dict, find_line_num):
     for line_ptr in road_dict.keys():
         min_dict[dist(ptr, line_ptr)] = line_ptr
     min_keys = sorted(min_dict.keys())[:find_line_num]
+    min_dist = 1
     for key in min_keys:
-        min_dist = 1
-        for i, min_line_ptr in enumerate(min_dict[key]):
+        for i, min_line_ptr in enumerate(road_dict[min_dict[key]]):
             dist2road = dist(min_line_ptr, ptr)
             if min_dist > dist2road:
                 min_dist = dist2road
@@ -52,7 +54,7 @@ def find_nearst_ptr(line_to_dict):
             min_dist_key = line
             min_dist2road = dist2road_info[1]
             min_dist2road_info = dist2road_info
-    if min_dist2road_info:
+    if not min_dist2road_info:
         raise RoadNotFoundException('Can not find the nearest road info \n{}'.format(line_to_dict))
     return min_dist2road_info[0], min_dist2road_info[1], min_dist2road_info[2], min_dist_key
 
@@ -63,21 +65,32 @@ def find_ptr_in_threshold(line_id_dict, old_info, roads, threshold):
         if road not in line_id_dict:
             continue
         dist_list.append(line_id_dict[road][1])
+    if not dist_list:
+        return old_info['index'],None,old_info['post'],old_info['road_id']
     min_value = min(dist_list)
-    if min_value - old_info[1] > threshold:
-        return old_info[0],old_info[1],old_info[2],old_info[3]
+    min_road_index = dist_list.index(min_value)
+    min_road = roads[min_road_index]
+    if min_road not in line_id_dict.keys() or abs(min_value - line_id_dict[min_road][1]) > threshold:
+        return old_info['index'],None,old_info['post'],old_info['road_id']
     else:
-        del line_id_dict[old_info[0]]
-        return find_nearst_ptr(line_id_dict)
+        if min_road not in line_id_dict:
+            return old_info['index'],None,old_info['post'],old_info['road_id']
+        else:
+            road_info = line_id_dict[min_road]
+            return road_info[0], road_info[1], road_info[2], min_road
 
 
-def main():
+def main(test_data):
+    # with open('road_posi.json', 'r') as f:
+    #     roads = json.load(f)
     road_dict = load_road_data()
-    line_list = load_line_data()
+    line_list = [test_data]
+    total_saver = []
     for line, goal_ptr in line_list:
         history = []  # [{road_id:xxx,'posi':(x,y),index:x},....]
+        history_saver = []  [119.298132  ,  26.04876801],
         for ptr in line:
-            line_id_dict = map2road(ptr, road_dict, 10)
+            line_id_dict = map2road(ptr, road_dict, FIND_LINE_NUM//2)
             nearst_index, nearst_dist, ptr_in_map, nearst_road_key = find_nearst_ptr(line_id_dict)
             if history:
                 # 拿到最近的点 判断是否和前一个在同一个道路上，
@@ -87,18 +100,41 @@ def main():
             else:
                 ptr_info_dict = {'road_id': nearst_road_key, 'post': ptr_in_map, 'index': nearst_index, 'old_posi':ptr}
                 history.append(ptr_info_dict)
+        print(list(map(lambda x:x['post'],history)))
         for index, his_info in enumerate(history):
-            if index == 0:
+            if index == 0 or index == len(history) -1 and ADD_PTR:
+                point = road_dict[tuple(his_info['road_id'])][his_info['index']]
+                history_saver.append(point)
                 continue
-            if his_info['road_id'] == history[index - 1]['road_id'] or his_info['road_id'] == history[index + 1][
-                'road_id']:
-                continue
+            line_id_dict = map2road(his_info['old_posi'], road_dict, FIND_LINE_NUM)
+            nearst_index, nearst_dist, ptr_in_map, nearst_road_key\
+                = find_ptr_in_threshold(line_id_dict,his_info,
+                                        list([history[index - 1]['road_id'],history[index + 1]['road_id']]),
+                                        DIFF_ROAD_DIST)
+            his_info['road_id'] = nearst_road_key
+            his_info['post'] = ptr_in_map
+            his_info['index'] = nearst_index
+            if his_info['road_id'] == history[index-1]['road_id'] and abs(his_info['index'] - history[index-1]['index']) > 1:
+                step = 1 if his_info['index'] > history[index-1]['index'] else -1
+                print(history[index-1]['index'],his_info['index']+step,step)
+                for i in range(history[index-1]['index'],his_info['index']+step,step):
+                    point = road_dict[his_info['road_id']][i]
+                    history_saver.append(point)
             else:
-                line_id_dict = map2road(his_info['old_posi'], road_dict, 10)
-                nearst_index, nearst_dist, ptr_in_map, nearst_road_key\
-                    = find_ptr_in_threshold(line_id_dict,list(his_info.values()),
-                                            list(set([history[index - 1]['road_id'],history[index + 1]['road_id']])),
-                                            DIFF_ROAD_DIST)
-                his_info['road_id'] = nearst_road_key
-                his_info['post'] = ptr_in_map
-                his_info['index'] = nearst_index
+                point = road_dict[tuple(his_info['road_id'])][his_info['index']]
+                print(point)
+                history_saver.append(point)
+        total_saver.append(history_saver)
+
+        print(list(map(lambda x: [x['road_id'], x['index']],history)))
+        print(history_saver)
+    return total_saver
+
+
+if __name__ == '__main__':
+    line_data = load_line_data()
+    old_line = line_data[100]
+    new_line = main(old_line)[0]
+    with open('saver.json','w') as f:
+        json.dump([old_line[0],new_line],f)
+
