@@ -1,5 +1,6 @@
 import tensorflow as tf
-import data_process
+from data_preprocess import data_process
+
 
 def get_default_params():
     return tf.contrib.training.HParams(

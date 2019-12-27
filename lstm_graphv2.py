@@ -1,7 +1,7 @@
 import tensorflow as tf
 from data_sender import Vocab
 from my_util import hps
-from data_process import GET_DATA_COL_INDEX, SAVER_PATH, LINE_LENGTH, MAP_SLICE_Y, MAP_SLICE_X
+from data_preprocess.data_process import GET_DATA_COL_INDEX, SAVER_PATH, LINE_LENGTH
 import numpy as np
 import os
 from util import haversine,recover,equal

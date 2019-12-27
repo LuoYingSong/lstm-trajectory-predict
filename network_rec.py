@@ -1,6 +1,6 @@
 import tensorflow as tf
 import os
-from data_process import SAVER_PATH
+from data_preprocess.data_process import SAVER_PATH
 from data_sender import Vocab,scaler
 import numpy as np
 import ujson

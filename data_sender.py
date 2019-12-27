@@ -2,9 +2,7 @@ from my_util import *
 import ujson
 import os
 import numpy as np
-import time
-from data_process import LINE_LENGTH, HAS_COL
-from sklearn.preprocessing import MinMaxScaler
+
 
 # scaler = MinMaxScaler(feature_range=(0, 1))
 class Vocab:

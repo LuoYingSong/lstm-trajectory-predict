@@ -1,6 +1,6 @@
 from math import radians, cos, sin, asin, sqrt
 import numpy as np
-from data_process import MAP_SLICE_X,MAP_SLICE_Y
+from data_preprocess.data_process import MAP_SLICE_X,MAP_SLICE_Y
 
 def haversine(ptr1,ptr2):  # 经度1，纬度1，经度2，纬度2 （十进制度数）
     """
