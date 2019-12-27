@@ -15,6 +15,7 @@ rdd1 = sc.parallelize(data)
 
 
 
+
 def caculate(x):
     total_list = []
     for line in data:
