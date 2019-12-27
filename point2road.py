@@ -3,10 +3,15 @@ import json
 import math
 from tqdm import tqdm
 import pysnooper
+import time
+import multiprocessing
 
 FIND_LINE_NUM = 20
 DIFF_ROAD_DIST = 0.0000001
-ADD_PTR = False
+ADD_PTR = True
+DIFF_LINE_DIST = 0.0023
+MIN_LINE_LENGTH = 15
+
 
 class RoadNotFoundException(Exception):
     pass
@@ -80,15 +85,15 @@ def find_ptr_in_threshold(line_id_dict, old_info, roads, threshold):
             return road_info[0], road_info[1], road_info[2], min_road
 
 
-def main(test_data):
+def main(road_dict,line_list,total_saver):
     # with open('road_posi.json', 'r') as f:
     #     roads = json.load(f)
-    road_dict = load_road_data()
-    line_list = [test_data]
-    total_saver = []
-    for line, goal_ptr in line_list:
+    road_dict = road_dict
+    line_list = line_list
+    total_saver = total_saver
+    for line, goal_ptr in tqdm(line_list):
         history = []  # [{road_id:xxx,'posi':(x,y),index:x},....]
-        history_saver = []  [119.298132  ,  26.04876801],
+        history_saver = []
         for ptr in line:
             line_id_dict = map2road(ptr, road_dict, FIND_LINE_NUM//2)
             nearst_index, nearst_dist, ptr_in_map, nearst_road_key = find_nearst_ptr(line_id_dict)
@@ -100,9 +105,9 @@ def main(test_data):
             else:
                 ptr_info_dict = {'road_id': nearst_road_key, 'post': ptr_in_map, 'index': nearst_index, 'old_posi':ptr}
                 history.append(ptr_info_dict)
-        print(list(map(lambda x:x['post'],history)))
+        # print(list(map(lambda x:x['post'],history)))
         for index, his_info in enumerate(history):
-            if index == 0 or index == len(history) -1 and ADD_PTR:
+            if index == 0 or index == len(history) -1:
                 point = road_dict[tuple(his_info['road_id'])][his_info['index']]
                 history_saver.append(point)
                 continue
@@ -114,27 +119,55 @@ def main(test_data):
             his_info['road_id'] = nearst_road_key
             his_info['post'] = ptr_in_map
             his_info['index'] = nearst_index
-            if his_info['road_id'] == history[index-1]['road_id'] and abs(his_info['index'] - history[index-1]['index']) > 1:
+            if his_info['road_id'] == history[index-1]['road_id'] and abs(his_info['index'] - history[index-1]['index']) > 1  and ADD_PTR:
                 step = 1 if his_info['index'] > history[index-1]['index'] else -1
-                print(history[index-1]['index'],his_info['index']+step,step)
+                # print(history[index-1]['index'],his_info['index']+step,step)
                 for i in range(history[index-1]['index'],his_info['index']+step,step):
                     point = road_dict[his_info['road_id']][i]
                     history_saver.append(point)
             else:
                 point = road_dict[tuple(his_info['road_id'])][his_info['index']]
-                print(point)
+                # print(point)
                 history_saver.append(point)
-        total_saver.append(history_saver)
-
-        print(list(map(lambda x: [x['road_id'], x['index']],history)))
-        print(history_saver)
+        start = 0
+        for i,ptr in enumerate(history_saver):
+            if i == 0:
+                continue
+            if dist(ptr,history_saver[i-1]) > DIFF_LINE_DIST:
+                if i - start > MIN_LINE_LENGTH:
+                    if i - start > MIN_LINE_LENGTH:
+                        total_saver.append(history_saver[start:i])
+                    start = i
+        # print(list(map(lambda x: [x['road_id'], x['index']],history)))
+        # print(history_saver)
     return total_saver
+#
+# def multi_thread():
+#     road_dict = load_road_data()
+#     line_list = load_line_data()
+#     cpu_core = multiprocessing.cpu_count()
+#     length = len(line_list) // cpu_core - 1
+#     process_pool = []
+#     total = multiprocessing.Manager().list()
+#     for i in range(cpu_core):
+#         p = multiprocessing.Process(target=main,args=(road_dict,line_list[i*length:(i+1)*length],total,))
+#         p.start()
+#         process_pool.append(p)
+#     for p in process_pool:
+#         p.join()
+#     time.sleep(10)
+#     return list(total)
 
 
 if __name__ == '__main__':
-    line_data = load_line_data()
-    old_line = line_data[100]
-    new_line = main(old_line)[0]
-    with open('saver.json','w') as f:
-        json.dump([old_line[0],new_line],f)
+    road_dict = load_road_data()
+    line_list = load_line_data()
+    data = main(road_dict,line_list,[])
+    # line_data = load_line_data()
+    # old_line = line_data[100]
+    # new_line = main(line_data)
+    # with open('saver.json','w') as f:
+    #     json.dump([old_line[0],new_line],f)
+    # print(dist([119.28679399,  26.05479201],
+    #    [119.288813  ,  26.05298499],))
 
