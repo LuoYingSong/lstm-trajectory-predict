@@ -1,10 +1,6 @@
-import numpy as np
 import json
 import math
 from tqdm import tqdm
-import pysnooper
-import time
-import multiprocessing
 
 FIND_LINE_NUM = 20
 DIFF_ROAD_DIST = 0.0000001
@@ -161,7 +157,7 @@ def main(road_dict,line_list,total_saver):
 
 if __name__ == '__main__':
     road_dict = load_road_data()
-    line_list = load_line_data()[:50]
+    line_list = load_line_data()[:5000]
     data = main(road_dict,line_list,[])
     with open('/media/luoyingsong/新加卷/GPS数据/data_preprocess/line2road2.json','w') as f:
         json.dump(data,f)

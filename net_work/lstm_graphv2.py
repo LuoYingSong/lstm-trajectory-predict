@@ -1,5 +1,5 @@
 import tensorflow as tf
-from data_sender import Vocab
+from net_work.data_sender import Vocab
 from my_util import hps
 from data_preprocess.data_process import GET_DATA_COL_INDEX, SAVER_PATH, LINE_LENGTH
 import numpy as np

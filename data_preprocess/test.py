@@ -14,8 +14,8 @@ def distances(x1,x2):
 
 def DTW(s1,s2):
     line_saver = None
-    if dist(s1[0],s2[0]) > 0.001:
-        return 1,None
+    # if dist(s1[0],s2[0]) > 0.001:
+    #     return 1,None
     r, c = len(s1), len(s2)
     D0 = zeros((r+1,c+1))
     D0[0,1:] = inf
@@ -32,7 +32,8 @@ def DTW(s1,s2):
     p,q = [i],[j]
     while(i>0 or j>0):
         tb = argmin((D0[i,j],D0[i,j+1],D0[i+1,j]))
-        if i == MIN_LINE_LENGTH - 1:
+        if i == 1:
+            print(j)
             line_saver = s2[j]
         if tb==0 :
             i-=1
@@ -46,6 +47,6 @@ def DTW(s1,s2):
     return D1[-1,-1],line_saver
 
 if __name__ == '__main__':
-    s1 = [[1, 2], [3, 4], [5, 5], [5, 4]]
-    s2 = [[3, 4], [5, 5], [5, 4]]
+    s1 = [[1, 2], [3, 3], [5, 5], [5, 4], [5, 3.9]]
+    s2 = [[3, 4], [5, 5.4], [5, 4.1]]
     print(DTW(s1,s2))
