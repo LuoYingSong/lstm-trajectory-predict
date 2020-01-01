@@ -20,7 +20,7 @@ def load_road_data():
 
 
 def load_line_data():
-    with open('../processed_data/processed_data.json', 'r') as f:
+    with open('./processed_data/processed_data.json', 'r') as f:
         data = json.load(f)
     return data
 
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     road_dict = load_road_data()
     line_list = load_line_data()[:5000]
     data = main(road_dict,line_list,[])
-    with open('/media/luoyingsong/新加卷/GPS数据/data_preprocess/line2road2.json','w') as f:
+    with open('./line2road2.json','w') as f:
         json.dump(data,f)
     # line_data = load_line_data()
     # old_line = line_data[100]

@@ -4,11 +4,10 @@ from tqdm import tqdm
 import os
 from multiprocessing import Process
 import pysnooper
-DIR_LIST = ['/home/wangxing/saver2/data 5.1-5.10',
-            '/home/wangxing/saver2/data 5.11-5.20',
-            '/home/wangxing/saver2/data 5.21-5.30']
+DIR_LIST = ['/home/wangxing/saver1/data 5.1-5.10',
+            '/home/wangxing/saver1/data 5.11-5.20',
+            '/home/wangxing/saver1/data 5.21-5.30']
 
-@pysnooper.snoop()
 def runner(path):
     if file.endswith('.csv'):
         try:
@@ -17,7 +16,7 @@ def runner(path):
             index_dict = data.groupby('F_ID').groups
         except KeyError:
             return
-        for i in tqdm(index_dict):
+        for i in index_dict:
             index = index_dict[i]
             save_data = data.iloc[index]
             if save_data.shape[0] > 100:
@@ -35,7 +34,7 @@ if __name__ == '__main__':
                 t = Process(target=runner,args=(path,))
                 t.start()
                 pool.append(t)
-            if len(pool) > 6:
+            if len(pool) > 40:
                 for t in pool:
                     t.join()
                 pool = []

@@ -7,22 +7,24 @@ from multiprocessing import Process, Manager
 import pysnooper
 import random
 from tqdm import tqdm
+import datetime
+
 
 SPEED_THRESHOLD = 1 # 只取大于这个值得点
-FILE_DIR = '../saver'  # 数据源路径
+FILE_DIR = '/home/wangxing/saver'  # 数据源路径
 SAVER_PATH = os.path.join('.', "processed_data")  # 数据保存路径
-LINE_LENGTH = 15  # 每个步长
+LINE_LENGTH = 10  # 每个步长
 BACKWORD_NUM = 3  # 路径回溯长度
 GET_DATA_COL_INDEX = [4, 5]  # 经纬度0-MAX_LICE 速度MAX_SLICE+24 -   方向MAX_SLICE+1-MAX_SLICE+8
 # 载客MAX_SLICE+9,MAX_SLICE+10 时刻划分MAX_SLICE+11 , MAX_SLICE+16 星期几MAX_SLICE+17-MAX_SLICE+23 输入值
 OUTPUT_DATA_COL_INDEX = [4, 5]  # 经纬度 输出值
 MAP_SLICE_X = 200  #
-SAME_TIME_STEP_SECOND = (20, 49)  # 时间点间隔取值 超过间隔视为不再是相同的点
+SAME_TIME_STEP_SECOND = (-1,60)  # 时间点间隔取值 超过间隔视为不再是相同的点
 GET_DATA_TIME_STEP = (25, 32)  # 下个点的区间只有这个区间内的才能被取到
 MINI_STEP_CONTAIN_PTR_NUM = 15
-PROCESS_NUM = 4  # 处理进程数量
+PROCESS_NUM = 16 # 处理进程数量
 MAP_SLICE_Y = 200
-DIFFERENT_PTR_THRESHOLD = 0.036  # 点的偏差
+DIFFERENT_PTR_THRESHOLD = 0.006  # 点的偏差
 MAX_SPEED = 120
 DIFFERENT_PTR_THRESHOLD_Y = 0.036
 HAS_COL = len(GET_DATA_COL_INDEX)
@@ -34,13 +36,25 @@ max_x, max_y, min_x, min_y = 119.376, 26.1544, 119.226, 25.985
 
 # {0: [1, 0], 1: [1, 1], 2: [0, 1], 3: [-1, 1], 4: [-1, 0], 5: [-1, -1], 6: [0, -1], 7: [1, -1]}
 
+def new2old_df(df):
+    df.columns = [0, 4, 5, 6, 'time', 1, 3, 8]
+    def func(x):
+        time_ = x['time']
+        date = datetime.datetime.strptime(time_, '%Y-%m-%d %H:%M:%S')
+        return pd.Series([date.year, date.month, date.day, date.hour, date.minute, date.second])
+
+    df[[9, 10, 11, 12, 13, 14]] = df.apply(func, axis=1)
+    del df['time']
+    return df
+
+
 def pre_process_data(start,end = 999999):
     '''
     筛选小于
     :return:
     '''
     all_df_list = Manager().list()
-    file_list = os.listdir('../saver')
+    file_list = os.listdir(FILE_DIR)
     random.shuffle(file_list)
     if end > start + 18000:
         file_list = file_list[start:start + 18000]
@@ -59,12 +73,10 @@ def pre_process_data(start,end = 999999):
 
 
 def _file_pre_process(file_list, min_x, min_y, max_x, max_y, all_df_list):
-    step = len(file_list) // 10 + 1
-    count = 0
     for file in tqdm(file_list):
-        count += 1
         if file.split('.')[-1] in ("txt", "csv"):
-            df = pd.read_csv(os.path.join(FILE_DIR, file), names=[i for i in range(17)])
+            df = pd.read_csv(os.path.join(FILE_DIR, file), names=[i for i in range(8)])
+            df = new2old_df(df)
             df = df[(df[4] > min_x) & (df[5] > min_y) & (df[4] < max_x) & (df[5] < max_y)]
             if df.shape[0]:
                 try:
@@ -97,7 +109,6 @@ def make_ptr_to_line(df_saver, all_data_list):
             while j - i > LINE_LENGTH:
                 data = df.loc[i:i+LINE_LENGTH,GET_DATA_COL_INDEX].values.tolist()
                 label = df.loc[i:i+LINE_LENGTH,GET_DATA_COL_INDEX].values.tolist()
-                print(data)
                 all_data_list.append((data, label))
                 i += BACKWORD_NUM
     print(len(all_data_list))
@@ -119,6 +130,8 @@ def main(total):
         data_queue = Manager()
         all_data_list = data_queue.list()
         df_saver = pre_process_data(start,total)
+        if not df_saver:
+            break
         random.shuffle(df_saver)
         slice = len(df_saver) // PROCESS_NUM
         process_pool = []
@@ -160,4 +173,5 @@ def find_eroor_ptr(df):
 
 
 if __name__ == '__main__':
-    main(4000)
+    # time.sleep(10000)
+    main(1000000000000000)
