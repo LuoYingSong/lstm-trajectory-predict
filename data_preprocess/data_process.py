@@ -76,7 +76,10 @@ def _file_pre_process(file_list, min_x, min_y, max_x, max_y, all_df_list):
     for file in tqdm(file_list):
         if file.split('.')[-1] in ("txt", "csv"):
             df = pd.read_csv(os.path.join(FILE_DIR, file), names=[i for i in range(8)])
-            df = new2old_df(df)
+            try:
+                df = new2old_df(df)
+            except ValueError:
+                continue
             df = df[(df[4] > min_x) & (df[5] > min_y) & (df[4] < max_x) & (df[5] < max_y)]
             if df.shape[0]:
                 try:
@@ -108,7 +111,7 @@ def make_ptr_to_line(df_saver, all_data_list):
         for i,j in zip(split_list[:-1],split_list[1:]):
             while j - i > LINE_LENGTH:
                 data = df.loc[i:i+LINE_LENGTH,GET_DATA_COL_INDEX].values.tolist()
-                label = df.loc[i:i+LINE_LENGTH,GET_DATA_COL_INDEX].values.tolist()
+                label = df.loc[i+LINE_LENGTH,GET_DATA_COL_INDEX].values.tolist()
                 all_data_list.append((data, label))
                 i += BACKWORD_NUM
     print(len(all_data_list))
@@ -117,7 +120,7 @@ def make_ptr_to_line(df_saver, all_data_list):
 def data_saver(data_list):
     if not os.path.exists(SAVER_PATH):
         os.mkdir(SAVER_PATH)
-
+    print(os.path.join(SAVER_PATH, 'processed_data.json'))
     with open(os.path.join(SAVER_PATH, 'processed_data.json'), "w") as f:
         ujson.dump(data_list, f)
 

@@ -1,7 +1,7 @@
-import json
+import ujson
 import math
 from tqdm import tqdm
-
+import multiprocessing
 FIND_LINE_NUM = 20
 DIFF_ROAD_DIST = 0.0000001
 ADD_PTR = True
@@ -15,13 +15,13 @@ class RoadNotFoundException(Exception):
 
 def load_road_data():
     with open('../roads_dict2.json', 'r') as f:
-        data = json.load(f)
+        data = ujson.load(f)
     return dict(zip(map(lambda x: eval(x), data.keys()), data.values()))
 
 
 def load_line_data():
     with open('./processed_data/processed_data.json', 'r') as f:
-        data = json.load(f)
+        data = ujson.load(f)
     return data
 
 
@@ -82,8 +82,8 @@ def find_ptr_in_threshold(line_id_dict, old_info, roads, threshold):
 
 
 def main(road_dict,line_list,total_saver):
-    # with open('road_posi.json', 'r') as f:
-    #     roads = json.load(f)
+    # with open('road_posi.ujson', 'r') as f:
+    #     roads = ujson.load(f)
     road_dict = road_dict
     line_list = line_list
     total_saver = total_saver
@@ -138,34 +138,35 @@ def main(road_dict,line_list,total_saver):
         # print(history_saver)
     return total_saver
 #
-# def multi_thread():
-#     road_dict = load_road_data()
-#     line_list = load_line_data()
-#     cpu_core = multiprocessing.cpu_count()
-#     length = len(line_list) // cpu_core - 1
-#     process_pool = []
-#     total = multiprocessing.Manager().list()
-#     for i in range(cpu_core):
-#         p = multiprocessing.Process(target=main,args=(road_dict,line_list[i*length:(i+1)*length],total,))
-#         p.start()
-#         process_pool.append(p)
-#     for p in process_pool:
-#         p.join()
-#     time.sleep(10)
-#     return list(total)
+def multi_thread():
+    road_dict = load_road_data()
+    line_list = load_line_data()[:]
+    cpu_core = 16
+    length = len(line_list) // cpu_core
+    process_pool = []
+    total = multiprocessing.Manager().list()
+    for i in range(cpu_core):
+        p = multiprocessing.Process(target=main,args=(road_dict,line_list[i*length:(i+1)*length],total,))
+        p.start()
+        process_pool.append(p)
+    for p in process_pool:
+        p.join()
+    # time.sleep(10)
+    return list(total)
 
 
 if __name__ == '__main__':
-    road_dict = load_road_data()
-    line_list = load_line_data()[:5000]
-    data = main(road_dict,line_list,[])
+    data = multi_thread()
+    # road_dict = load_road_data()
+    # line_list = load_line_data()[:]
+    # data = main(road_dict,line_list,[])
     with open('./line2road2.json','w') as f:
-        json.dump(data,f)
+        ujson.dump(data,f)
     # line_data = load_line_data()
     # old_line = line_data[100]
     # new_line = main(line_data)
-    # with open('saver.json','w') as f:
-    #     json.dump([old_line[0],new_line],f)
+    # with open('saver.ujson','w') as f:
+    #     ujson.dump([old_line[0],new_line],f)
     # print(dist([119.28679399,  26.05479201],
     #    [119.288813  ,  26.05298499],))
 
