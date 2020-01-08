@@ -32,7 +32,7 @@ def DTW(s1,s2):
     p,q = [i],[j]
     while(i>0 or j>0):
         tb = argmin((D0[i,j],D0[i,j+1],D0[i+1,j]))
-        if i == MIN_LINE_LENGTH - 1:
+        if i == r - 1:
             line_saver = s2[j]
         if tb==0 :
             i-=1
