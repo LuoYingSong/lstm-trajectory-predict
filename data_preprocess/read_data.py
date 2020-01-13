@@ -25,6 +25,7 @@ def runner(dir):
                         data[data[2]==i[0]].to_csv("../../saver/"+str(int(i[0]))+'_'+str(int(i[1]))+'.txt',index=False,header=False)
 
 if __name__ == '__main__':
+    pass
     # pool = []
     # for dir in DIR_LIST:
     #     t = threading.Thread(target=runner,args=(dir,))

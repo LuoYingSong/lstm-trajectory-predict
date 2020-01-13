@@ -34,7 +34,7 @@ if __name__ == '__main__':
                 t = Process(target=runner,args=(path,))
                 t.start()
                 pool.append(t)
-            if len(pool) > 40:
+            if len(pool) > 16:
                 for t in pool:
                     t.join()
                 pool = []

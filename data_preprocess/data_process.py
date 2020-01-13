@@ -14,7 +14,7 @@ SPEED_THRESHOLD = 1 # 只取大于这个值得点
 FILE_DIR = '/home/wangxing/saver'  # 数据源路径
 SAVER_PATH = os.path.join('.', "processed_data")  # 数据保存路径
 LINE_LENGTH = 10  # 每个步长
-BACKWORD_NUM = 3  # 路径回溯长度
+BACKWORD_NUM = 7  # 路径回溯长度
 GET_DATA_COL_INDEX = [4, 5]  # 经纬度0-MAX_LICE 速度MAX_SLICE+24 -   方向MAX_SLICE+1-MAX_SLICE+8
 # 载客MAX_SLICE+9,MAX_SLICE+10 时刻划分MAX_SLICE+11 , MAX_SLICE+16 星期几MAX_SLICE+17-MAX_SLICE+23 输入值
 OUTPUT_DATA_COL_INDEX = [4, 5]  # 经纬度 输出值
@@ -120,8 +120,9 @@ def make_ptr_to_line(df_saver, all_data_list):
 def data_saver(data_list):
     if not os.path.exists(SAVER_PATH):
         os.mkdir(SAVER_PATH)
+    print(len(data_list))
     print(os.path.join(SAVER_PATH, 'processed_data.json'))
-    with open(os.path.join(SAVER_PATH, 'processed_data.json'), "w") as f:
+    with open(os.path.join(SAVER_PATH, 'processed_data2.json'), "w") as f:
         ujson.dump(data_list, f)
 
 

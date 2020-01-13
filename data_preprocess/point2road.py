@@ -6,7 +6,7 @@ FIND_LINE_NUM = 20
 DIFF_ROAD_DIST = 0.0000001
 ADD_PTR = True
 DIFF_LINE_DIST = 0.0023
-MIN_LINE_LENGTH = 15
+MIN_LINE_LENGTH = 30
 
 
 class RoadNotFoundException(Exception):
@@ -20,7 +20,7 @@ def load_road_data():
 
 
 def load_line_data():
-    with open('./processed_data/processed_data.json', 'r') as f:
+    with open('./processed_data/processed_data2.json', 'r') as f:
         data = ujson.load(f)
     return data
 
@@ -160,7 +160,7 @@ if __name__ == '__main__':
     # road_dict = load_road_data()
     # line_list = load_line_data()[:]
     # data = main(road_dict,line_list,[])
-    with open('./line2road2.json','w') as f:
+    with open('./line2road3.json','w') as f:
         ujson.dump(data,f)
     # line_data = load_line_data()
     # old_line = line_data[100]
