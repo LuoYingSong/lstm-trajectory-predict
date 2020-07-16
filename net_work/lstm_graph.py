@@ -5,16 +5,19 @@ import os
 import sys
 sys.path.append('..')
 from util import haversine
+import json
+
+
 gpu_options = tf.GPUOptions(allow_growth=True)
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 parameter = {'layer':4,
              'lstm_hidden_node_num':64,
-             'hideen_layer':[100,500,300,64],
+             'hideen_layer':[300],
              'first_layer':32,
              'learning_rate':0.001,
              'batch_size':100,
-             'drop':0.6,
-             'epoch':100,
+             'drop':1,
+             'epoch':10,
              'dtw_layer':96
              }
 
@@ -65,6 +68,7 @@ class Model():
         sender = Sender()
         count = 0
         epoch_count = 0
+        data_saver = []
         with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
             writer = tf.summary.FileWriter("logs/", sess.graph)
             init = tf.global_variables_initializer()
@@ -102,8 +106,13 @@ class Model():
                                                                 self.most_like_node: histort_ptr})
                     print('\n\n')
                     print('test_data')
-                    print(loss, np.array([haversine(i, j) for i, j in zip(net_work_output, label)]).mean())
+                    avg_error_dist = np.array([haversine(i, j) for i, j in zip(net_work_output, label)]).mean()
+                    print(loss, avg_error_dist)
                     print('\n\n')
+                    data_saver.append(list(map(float,[epoch_count,count,loss,avg_error_dist])))
+                    with open('test1_0.001_result.json', 'w') as f:
+                        json.dump(data_saver,f)
+
     def rev_net(self):
         pass
 

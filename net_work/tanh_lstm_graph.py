@@ -16,7 +16,7 @@ parameter = {'layer':4,
              'first_layer':32,
              'learning_rate':0.001,
              'batch_size':100,
-             'drop':0.6,
+             'drop':1,
              'epoch':100,
              'dtw_layer':96
              }

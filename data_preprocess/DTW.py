@@ -2,9 +2,9 @@ import sys
 sys.path.append(
     '..'
 )
-from data_preprocess.point2road import dist
+from trash.point2road import dist
 from numpy import array, zeros, argmin, inf, equal, ndim
-from data_preprocess.point2road import MIN_LINE_LENGTH
+from trash.point2road import MIN_LINE_LENGTH
 
 MIN_LINE_LENGTH = MIN_LINE_LENGTH - 1
 
