@@ -4,7 +4,7 @@ import random
 class Sender():
 
     def __init__(self):
-        with open('../data_preprocess/goal2.json') as f:
+        with open('../data_preprocess/processed_data/step3_data.json') as f:
             self.data = ujson.load(f)
         self.start = 0
         self.end = 0
@@ -24,15 +24,18 @@ class Sender():
     def send(self,n):
         self.end = self.start+n
         if self.end > len(self.data):
-            print(len(self.data))
+            print(len(self.data),'print epoch end')
             raise Exception('epoch end')
         ret_data = np.array(self.data[self.start:self.end])
         self.start = self.end
         return ret_data[:,0].tolist(),ret_data[:,1].tolist(),ret_data[:,2].tolist()
 
+    def send_test(self):
+        ret_data = np.array(self.test)
+        return ret_data[:, 0].tolist(), ret_data[:, 1].tolist(), ret_data[:, 2].tolist()
 
 
 if __name__ == '__main__':
     sender = Sender()
-    for i in range(20):
-        print(sender.send(1))
+    for i in range(1):
+        print(sender.send_test()[0])

@@ -1,0 +1,6 @@
+model_checkpoint_path: "mnist.ckpt-21"
+all_model_checkpoint_paths: "mnist.ckpt-17"
+all_model_checkpoint_paths: "mnist.ckpt-18"
+all_model_checkpoint_paths: "mnist.ckpt-19"
+all_model_checkpoint_paths: "mnist.ckpt-20"
+all_model_checkpoint_paths: "mnist.ckpt-21"

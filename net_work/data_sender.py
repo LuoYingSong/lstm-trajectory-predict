@@ -2,7 +2,6 @@ from my_util import *
 import ujson
 import os
 import numpy as np
-from my_util import hps
 
 # scaler = MinMaxScaler(feature_range=(0, 1))
 class Vocab:

@@ -4,7 +4,7 @@ import numpy as np
 import ujson
 import time
 from multiprocessing import Process, Manager
-import pysnooper
+# import pysnooper
 import random
 from tqdm import tqdm
 import datetime
@@ -13,7 +13,7 @@ import datetime
 SPEED_THRESHOLD = 1 # 只取大于这个值得点
 FILE_DIR = '/home/wangxing/saver'  # 数据源路径
 SAVER_PATH = os.path.join('.', "processed_data")  # 数据保存路径
-LINE_LENGTH = 10  # 每个步长
+LINE_LENGTH = 15  # 每个步长
 BACKWORD_NUM = 7  # 路径回溯长度
 GET_DATA_COL_INDEX = [4, 5]  # 经纬度0-MAX_LICE 速度MAX_SLICE+24 -   方向MAX_SLICE+1-MAX_SLICE+8
 # 载客MAX_SLICE+9,MAX_SLICE+10 时刻划分MAX_SLICE+11 , MAX_SLICE+16 星期几MAX_SLICE+17-MAX_SLICE+23 输入值
@@ -22,7 +22,7 @@ MAP_SLICE_X = 200  #
 SAME_TIME_STEP_SECOND = (-1,60)  # 时间点间隔取值 超过间隔视为不再是相同的点
 GET_DATA_TIME_STEP = (25, 32)  # 下个点的区间只有这个区间内的才能被取到
 MINI_STEP_CONTAIN_PTR_NUM = 15
-PROCESS_NUM = 16 # 处理进程数量
+PROCESS_NUM = 12 # 处理进程数量
 MAP_SLICE_Y = 200
 DIFFERENT_PTR_THRESHOLD = 0.006  # 点的偏差
 MAX_SPEED = 120
@@ -122,11 +122,10 @@ def data_saver(data_list):
         os.mkdir(SAVER_PATH)
     print(len(data_list))
     print(os.path.join(SAVER_PATH, 'processed_data.json'))
-    with open(os.path.join(SAVER_PATH, 'processed_data2.json'), "w") as f:
+    with open(os.path.join(SAVER_PATH, 'processed_data2_{}.json'.format(LINE_LENGTH)), "w") as f:
         ujson.dump(data_list, f)
 
 
-# @pysnooper.snoop()
 def main(total):
     start = 0
     all_data = []
